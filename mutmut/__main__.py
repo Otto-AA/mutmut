@@ -4,7 +4,7 @@ import gc
 import inspect
 import itertools
 import json
-from multiprocessing import Pool, Process, set_start_method
+from multiprocessing import JoinableQueue, Pool, Process, Queue, set_start_method
 import multiprocessing
 import multiprocessing.connection
 import os
@@ -47,7 +47,9 @@ from time import (
 )
 from typing import (
     Dict,
+    Generic,
     List,
+    TypeVar,
     Union,
 )
 
@@ -889,7 +891,7 @@ def timeout_checker(mutants):
 @click.option('--max-children', type=int)
 @click.argument('mutant_names', required=False, nargs=-1)
 def run(mutant_names, *, max_children):
-    set_start_method('spawn')
+    set_start_method('fork')
 
     assert isinstance(mutant_names, (tuple, list)), mutant_names
     _run(mutant_names, max_children)
@@ -1087,6 +1089,48 @@ def _test_mutation(runner: TestRunner, m: SourceFileMutationData, mutant_name: s
         with open(f'error.{mutant_name}.log', 'w') as log:
             log.write(str(e))
         os._exit(-1)
+
+TaskArgs = TypeVar('TaskArgs')
+
+@dataclass
+class Task(Generic[TaskArgs]):
+    args: TaskArgs
+    # this timeout is real time, not process cpu time
+    timeout_seconds: int
+
+
+class CustomProcessPool:
+    def __init__(self, tasks: list[Task], max_workers: int):
+        self._tasks = tasks
+        self._remaining_tasks_queue: Queue[Task] = Queue()
+        self._max_workers = max_workers
+        self._workers: set[Process] = set()
+
+    def run(self):
+        for task in self._tasks:
+            self._remaining_tasks_queue.put(task)
+
+        while not self.done():
+            self._start_workers()
+            self._wait_for_worker_exit()
+
+
+    def _start_workers(self):
+        for _ in range(self._max_workers):
+            self._start_worker()
+
+    def _start_worker(self):
+        pass
+
+    def _wait_for_worker_exit(self):
+        """Wait until one or more worker processes exited."""
+        sentinels = [p.sentinel for p in self._workers]
+        multiprocessing.connection.wait(sentinels)
+
+    def done(self) -> bool:
+        return self._remaining_tasks_queue.empty()
+
+
 
 
 
