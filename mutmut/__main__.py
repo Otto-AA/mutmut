@@ -506,6 +506,9 @@ def status_printer():
     last_update = [datetime(1900, 1, 1)]
     update_threshold = timedelta(seconds=0.1)
 
+    # support the spinner chars on windows
+    sys.__stdout__.reconfigure(encoding='utf-8')
+
     def p(s, *, force_output=False):
         if not force_output and (datetime.now() - last_update[0]) < update_threshold:
             return
