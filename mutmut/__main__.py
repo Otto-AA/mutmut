@@ -229,14 +229,14 @@ def copy_also_copy_files():
 def create_mutants_for_file(filename, output_path):
     input_stat = os.stat(filename)
 
-    with open(filename) as f:
+    with open(filename, encoding='utf-8') as f:
         source = f.read()
 
-    with open(output_path, 'w') as out:
+    with open(output_path, 'w', encoding='utf-8') as out:
         mutant_names, hash_by_function_name = write_all_mutants_to_file(out=out, source=source, filename=filename)
 
     # validate no syntax errors of mutants
-    with open(output_path) as f:
+    with open(output_path, encoding='utf-8') as f:
         try:
             ast.parse(f.read())
         except (IndentationError, SyntaxError) as e:
@@ -281,7 +281,7 @@ class SourceFileMutationData:
 
     def load(self):
         try:
-            with open(self.meta_path) as f:
+            with open(self.meta_path, encoding='utf-8') as f:
                 self.meta = json.load(f)
         except FileNotFoundError:
             return
@@ -308,7 +308,7 @@ class SourceFileMutationData:
             os.kill(pid, SIGTERM)
 
     def save(self):
-        with open(self.meta_path, 'w') as f:
+        with open(self.meta_path, 'w', encoding='utf-8') as f:
             json.dump(dict(
                 exit_code_by_key=self.exit_code_by_key,
                 hash_by_function_name=self.hash_by_function_name,
@@ -783,7 +783,7 @@ def collect_or_load_stats(runner):
 def load_stats():
     did_load = False
     try:
-        with open('mutants/mutmut-stats.json') as f:
+        with open('mutants/mutmut-stats.json', encoding='utf-8') as f:
             data = json.load(f)
             for k, v in data.pop('tests_by_mangled_function_name').items():
                 mutmut.tests_by_mangled_function_name[k] |= set(v)
@@ -797,7 +797,7 @@ def load_stats():
 
 
 def save_stats():
-    with open('mutants/mutmut-stats.json', 'w') as f:
+    with open('mutants/mutmut-stats.json', 'w', encoding='utf-8') as f:
         json.dump(dict(
             tests_by_mangled_function_name={k: list(v) for k, v in mutmut.tests_by_mangled_function_name.items()},
             duration_by_test=mutmut.duration_by_test,
@@ -1089,7 +1089,7 @@ def _test_mutation(task: Task):
         return result
         # os._exit(result)
     except Exception as e:
-        with open(f'error.{mutant_name}.log', 'w') as log:
+        with open(f'error.{mutant_name}.log', 'w', encoding='utf-8') as log:
             log.write(str(e))
             log.flush()
         return -24
@@ -1123,12 +1123,12 @@ def results(all):
 
 
 def read_mutants_module(path) -> cst.Module:
-    with open(Path('mutants') / path) as f:
+    with open(Path('mutants') / path, encoding='utf-8') as f:
         return cst.parse_module(f.read())
 
 
 def read_orig_module(path) -> cst.Module:
-    with open(path) as f:
+    with open(path, encoding='utf-8') as f:
         return cst.parse_module(f.read())
 
 
@@ -1229,7 +1229,7 @@ def apply_mutant(mutant_name):
 
     new_module: cst.Module = orig_module.deep_replace(original_function, mutant_function) # type: ignore
 
-    with open(path, 'w') as f:
+    with open(path, 'w', encoding='utf-8') as f:
         f.write(new_module.code)
 
 
