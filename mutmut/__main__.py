@@ -11,7 +11,6 @@ from multiprocessing import JoinableQueue, Pool, Process, Queue, set_start_metho
 import multiprocessing
 import multiprocessing.connection
 import os
-import resource
 import shutil
 import signal
 import subprocess
@@ -1078,6 +1077,7 @@ def _test_mutation(task: Task):
             # TODO: implement timeout for windows + unix
             # estimated_time_of_tests = m.estimated_time_of_tests_by_mutant[mutant_name]
             # cpu_time_limit = ceil((estimated_time_of_tests + 1) * 2 + process_time()) * 10
+            # import resource
             # resource.setrlimit(resource.RLIMIT_CPU, (cpu_time_limit, cpu_time_limit))
 
             with CatchOutput():
