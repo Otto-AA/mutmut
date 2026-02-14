@@ -10,7 +10,7 @@ import libcst.matchers as m
 from mutmut.trampoline_templates import create_trampoline_lookup, mangle_function_name, trampoline_impl
 from mutmut.node_mutation import mutation_operators, OPERATORS_TYPE
 
-NEVER_MUTATE_FUNCTION_NAMES = { "__getattribute__", "__setattr__", "__new__" }
+NEVER_MUTATE_FUNCTION_NAMES = { "__getattribute__", "__setattr__", "__new__"}
 NEVER_MUTATE_FUNCTION_CALLS = { "len", "isinstance" }
 
 @dataclass
@@ -316,12 +316,14 @@ def create_trampoline_wrapper(function: cst.FunctionDef, mangled_name: str, clas
             # return await _mutmut_trampoline(...)
             result_statement = cst.SimpleStatementLine([cst.Return(cst.Await(result))])
 
+    type_ignore_whitespace = cst.TrailingWhitespace(comment=cst.Comment('# type: ignore'))
+
     function.whitespace_after_type_parameters
     return function.with_changes(
         body=cst.IndentedBlock(
             [
-                cst.SimpleStatementLine([args_assignemnt]),
-                cst.SimpleStatementLine([kwargs_assignment]),
+                cst.SimpleStatementLine([args_assignemnt], trailing_whitespace=type_ignore_whitespace),
+                cst.SimpleStatementLine([kwargs_assignment], trailing_whitespace=type_ignore_whitespace),
                 result_statement,
             ],
         ),
