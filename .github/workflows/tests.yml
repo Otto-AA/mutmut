@@ -3,13 +3,9 @@ name: Run tests
 on: [push, pull_request]
 
 jobs:
-  tests:
-    name: Test Python ${{ matrix.python-version }}
+  debug-ci:
+    name: Debug CI
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.14", "3.13", "3.12", "3.11", "3.10"]
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -17,11 +13,38 @@ jobs:
       - name: Install uv and set the Python version
         uses: astral-sh/setup-uv@v6
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.14"
           enable-cache: true
 
       - name: Install dependencies
         run: uv sync --locked --dev
 
       - name: Run tests
-        run: uv run pytest
+        run: . .venv/bin/activate && pyrefly check --output-format=json --use-ignore-files=false 2> /dev/null
+
+      # - name: Run tests
+      #   run: . .venv/bin/activate && cd e2e_projects/type_checking/ && mutmut run && cd mutants/ && pyrefly check --output-format=json --use-ignore-files=false 2> /dev/null
+
+
+  # tests:
+  #   name: Test Python ${{ matrix.python-version }}
+  #   runs-on: ubuntu-latest
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       python-version: ["3.14", "3.13", "3.12", "3.11", "3.10"]
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v5
+
+  #     - name: Install uv and set the Python version
+  #       uses: astral-sh/setup-uv@v6
+  #       with:
+  #         python-version: ${{ matrix.python-version }}
+  #         enable-cache: true
+
+  #     - name: Install dependencies
+  #       run: uv sync --locked --dev
+
+  #     - name: Run tests
+  #       run: uv run pytest

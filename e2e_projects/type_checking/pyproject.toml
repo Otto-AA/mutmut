@@ -21,7 +21,7 @@ dev = [
 [tool.mutmut]
 debug = true
 # TODO: pyrefly ignores mutants/ dir if it is in .gitignore
-type_check_command = ["pyrefly", "check", "--output-format=json", "--use-ignore-files=false"]
+# type_check_command = ["pyrefly", "check", "--output-format=json", "--use-ignore-files=false"]
 # type_check_command = ["pyright", "--outputjson"]
 
 [tool.pyrefly]
